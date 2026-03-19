@@ -17,7 +17,6 @@ export function ExpandingRing({ onComplete }: Props) {
   const [trialResult, setTrialResult] = useState<'hit' | 'miss' | null>(null);
   const [hits, setHits] = useState(0);
   const [trial, setTrial] = useState(0);
-  const [reactions, setReactions] = useState<number[]>([]);
   const startTimeRef = useRef(0);
   const radiusRef = useRef(0);
   const animRef = useRef(0);
@@ -90,7 +89,6 @@ export function ExpandingRing({ onComplete }: Props) {
       hitsRef.current = hitsRef.current + 1;
       setHits(hitsRef.current);
       reactionsRef.current = [...reactionsRef.current, reaction];
-      setReactions(reactionsRef.current);
     }
     setTrialResult(isHit ? 'hit' : 'miss');
     setPhase('feedback');

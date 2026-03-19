@@ -15,7 +15,6 @@ export function LoopingCatch({ onComplete }: Props) {
   const [landingCol, setLandingCol] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [trial, setTrial] = useState(0);
-  const [reactions, setReactions] = useState<number[]>([]);
   const [answerTime, setAnswerTime] = useState(0);
   const [lastResult, setLastResult] = useState<boolean | null>(null);
   const animRef = useRef(0);
@@ -58,7 +57,6 @@ export function LoopingCatch({ onComplete }: Props) {
     if (phase !== 'answer') return;
     const reaction = Date.now() - answerTime;
     reactionsRef.current = [...reactionsRef.current, reaction];
-    setReactions(reactionsRef.current);
     const isCorrect = col === landingCol;
     const nextCorrect = isCorrect ? correct + 1 : correct;
     if (isCorrect) setCorrect(nextCorrect);

@@ -19,7 +19,6 @@ export function BallVelocity({ onComplete }: Props) {
   const [phase, setPhase] = useState<'idle' | 'moving' | 'answer' | 'feedback'>('idle');
   const [currentSpeed, setCurrentSpeed] = useState<Speed>('medium');
   const [lastResult, setLastResult] = useState<boolean | null>(null);
-  const [reactions, setReactions] = useState<number[]>([]);
   const [trialStart, setTrialStart] = useState(0);
   const animRef = useRef<number>(0);
   const reactionsRef = useRef<number[]>([]);
@@ -60,7 +59,6 @@ export function BallVelocity({ onComplete }: Props) {
     if (phase !== 'answer') return;
     const reaction = Date.now() - trialStart;
     reactionsRef.current = [...reactionsRef.current, reaction];
-    setReactions(reactionsRef.current);
     const isCorrect = answer === currentSpeed;
     const nextCorrect = isCorrect ? correct + 1 : correct;
     if (isCorrect) setCorrect(nextCorrect);

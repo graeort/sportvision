@@ -15,7 +15,6 @@ export function PenaltyRead({ onComplete }: Props) {
   const [kickerX, setKickerX] = useState(50);
   const [correct, setCorrect] = useState(0);
   const [trial, setTrial] = useState(0);
-  const [reactions, setReactions] = useState<number[]>([]);
   const [releaseTime, setReleaseTime] = useState(0);
   const [lastResult, setLastResult] = useState<boolean | null>(null);
   const reactionsRef = useRef<number[]>([]);
@@ -42,7 +41,6 @@ export function PenaltyRead({ onComplete }: Props) {
     if (phase !== 'answer') return;
     const reaction = Date.now() - releaseTime;
     reactionsRef.current = [...reactionsRef.current, reaction];
-    setReactions(reactionsRef.current);
     const isCorrect = answer === targetDir;
     const nextCorrect = isCorrect ? correct + 1 : correct;
     if (isCorrect) setCorrect(nextCorrect);
