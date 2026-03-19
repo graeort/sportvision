@@ -8,7 +8,7 @@ const GRID_COLS = 5;
 const TOTAL_TRIALS = 8;
 
 export function LoopingCatch({ onComplete }: Props) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [phase, setPhase] = useState<'launch' | 'answer' | 'feedback'>('launch');
   const [ballX, setBallX] = useState(10);
   const [ballY, setBallY] = useState(85);
@@ -19,6 +19,7 @@ export function LoopingCatch({ onComplete }: Props) {
   const [answerTime, setAnswerTime] = useState(0);
   const [lastResult, setLastResult] = useState<boolean | null>(null);
   const animRef = useRef(0);
+  const reactionsRef = useRef<number[]>([]);
 
   const startTrial = () => {
     const col = Math.floor(Math.random() * GRID_COLS);
@@ -56,7 +57,8 @@ export function LoopingCatch({ onComplete }: Props) {
   const handleAnswer = (col: number) => {
     if (phase !== 'answer') return;
     const reaction = Date.now() - answerTime;
-    setReactions((r) => [...r, reaction]);
+    reactionsRef.current = [...reactionsRef.current, reaction];
+    setReactions(reactionsRef.current);
     const isCorrect = col === landingCol;
     const nextCorrect = isCorrect ? correct + 1 : correct;
     if (isCorrect) setCorrect(nextCorrect);
@@ -68,7 +70,7 @@ export function LoopingCatch({ onComplete }: Props) {
     setTimeout(() => {
       if (nextTrial >= TOTAL_TRIALS) {
         const accuracy = Math.round((nextCorrect / TOTAL_TRIALS) * 100);
-        const avg = reactions.length > 0 ? Math.round(reactions.reduce((a, b) => a + b, 0) / reactions.length) : 500;
+        const avg = reactionsRef.current.length > 0 ? Math.round(reactionsRef.current.reduce((a, b) => a + b, 0) / reactionsRef.current.length) : 500;
         onComplete(accuracy, avg);
       } else {
         startTrial();

@@ -5,7 +5,7 @@ interface Props {
 }
 
 export function AntiSaccade({ onComplete }: Props) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [timeLeft, setTimeLeft] = useState(75);
   const [flashSide, setFlashSide] = useState<'left' | 'right' | null>(null);
   const [flashY, setFlashY] = useState(50);

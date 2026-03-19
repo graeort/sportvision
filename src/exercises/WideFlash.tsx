@@ -16,7 +16,7 @@ const ZONES = [
 ];
 
 export function WideFlash({ onComplete }: Props) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [timeLeft, setTimeLeft] = useState(60);
   const [flashedZones, setFlashedZones] = useState<number[]>([]);
   const [showing, setShowing] = useState(false);

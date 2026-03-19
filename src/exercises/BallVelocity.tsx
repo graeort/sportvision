@@ -12,7 +12,7 @@ const SPEEDS: Speed[] = ['slow', 'medium', 'fast'];
 const TOTAL_TRIALS = 8;
 
 export function BallVelocity({ onComplete }: Props) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [trial, setTrial] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [ballX, setBallX] = useState(-10);
@@ -22,6 +22,7 @@ export function BallVelocity({ onComplete }: Props) {
   const [reactions, setReactions] = useState<number[]>([]);
   const [trialStart, setTrialStart] = useState(0);
   const animRef = useRef<number>(0);
+  const reactionsRef = useRef<number[]>([]);
 
   const runTrial = () => {
     const speed = SPEEDS[Math.floor(Math.random() * 3)];
@@ -58,7 +59,8 @@ export function BallVelocity({ onComplete }: Props) {
   const handleAnswer = (answer: Speed) => {
     if (phase !== 'answer') return;
     const reaction = Date.now() - trialStart;
-    setReactions((r) => [...r, reaction]);
+    reactionsRef.current = [...reactionsRef.current, reaction];
+    setReactions(reactionsRef.current);
     const isCorrect = answer === currentSpeed;
     const nextCorrect = isCorrect ? correct + 1 : correct;
     if (isCorrect) setCorrect(nextCorrect);
@@ -70,7 +72,7 @@ export function BallVelocity({ onComplete }: Props) {
     setTimeout(() => {
       if (nextTrial >= TOTAL_TRIALS) {
         const accuracy = Math.round((nextCorrect / TOTAL_TRIALS) * 100);
-        const avg = reactions.length > 0 ? Math.round(reactions.reduce((a, b) => a + b, 0) / reactions.length) : 500;
+        const avg = reactionsRef.current.length > 0 ? Math.round(reactionsRef.current.reduce((a, b) => a + b, 0) / reactionsRef.current.length) : 500;
         onComplete(accuracy, avg);
       } else {
         runTrial();

@@ -5,7 +5,7 @@ interface Props {
 }
 
 export function SmoothPursuit({ onComplete }: Props) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [timeLeft, setTimeLeft] = useState(60);
   const [ballX, setBallX] = useState(50);
   const [ballY, setBallY] = useState(50);

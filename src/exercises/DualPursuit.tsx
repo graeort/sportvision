@@ -5,7 +5,7 @@ interface Props {
 }
 
 export function DualPursuit({ onComplete }: Props) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [timeLeft, setTimeLeft] = useState(120);
   const [pos1, setPos1] = useState({ x: 25, y: 50 });
   const [pos2, setPos2] = useState({ x: 75, y: 50 });

@@ -5,7 +5,7 @@ interface Props {
 }
 
 export function GapDecision({ onComplete }: Props) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [timeLeft, setTimeLeft] = useState(120);
   const [def1X, setDef1X] = useState(20);
   const [def2X, setDef2X] = useState(80);

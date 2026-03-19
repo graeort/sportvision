@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface Props {
   onComplete: (accuracy: number, reactionMs: number) => void;
@@ -9,7 +9,7 @@ type Direction = typeof DIRECTIONS[number];
 const TOTAL_TRIALS = 8;
 
 export function PenaltyRead({ onComplete }: Props) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [phase, setPhase] = useState<'approach' | 'kick' | 'answer' | 'feedback'>('approach');
   const [targetDir, setTargetDir] = useState<Direction>('Centre');
   const [kickerX, setKickerX] = useState(50);
@@ -18,6 +18,7 @@ export function PenaltyRead({ onComplete }: Props) {
   const [reactions, setReactions] = useState<number[]>([]);
   const [releaseTime, setReleaseTime] = useState(0);
   const [lastResult, setLastResult] = useState<boolean | null>(null);
+  const reactionsRef = useRef<number[]>([]);
 
   const startTrial = () => {
     const dir = DIRECTIONS[Math.floor(Math.random() * 3)];
@@ -40,7 +41,8 @@ export function PenaltyRead({ onComplete }: Props) {
   const handleAnswer = (answer: Direction) => {
     if (phase !== 'answer') return;
     const reaction = Date.now() - releaseTime;
-    setReactions((r) => [...r, reaction]);
+    reactionsRef.current = [...reactionsRef.current, reaction];
+    setReactions(reactionsRef.current);
     const isCorrect = answer === targetDir;
     const nextCorrect = isCorrect ? correct + 1 : correct;
     if (isCorrect) setCorrect(nextCorrect);
@@ -52,7 +54,7 @@ export function PenaltyRead({ onComplete }: Props) {
     setTimeout(() => {
       if (nextTrial >= TOTAL_TRIALS) {
         const accuracy = Math.round((nextCorrect / TOTAL_TRIALS) * 100);
-        const avg = reactions.length > 0 ? Math.round(reactions.reduce((a, b) => a + b, 0) / reactions.length) : 450;
+        const avg = reactionsRef.current.length > 0 ? Math.round(reactionsRef.current.reduce((a, b) => a + b, 0) / reactionsRef.current.length) : 450;
         onComplete(accuracy, avg);
       } else {
         startTrial();

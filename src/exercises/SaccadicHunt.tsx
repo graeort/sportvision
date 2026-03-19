@@ -5,7 +5,7 @@ interface Props {
 }
 
 export function SaccadicHunt({ onComplete }: Props) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [timeLeft, setTimeLeft] = useState(60);
   const [targetNum, setTargetNum] = useState(1);
   const [numbers, setNumbers] = useState<Array<{ num: number; x: number; y: number; id: number }>>([]);

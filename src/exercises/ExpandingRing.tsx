@@ -10,7 +10,7 @@ const MAX_RADIUS = CENTER - 4;
 const TOTAL_TRIALS = 8;
 
 export function ExpandingRing({ onComplete }: Props) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [radius, setRadius] = useState(0);
   const [targetRadius, setTargetRadius] = useState(0.7);
   const [phase, setPhase] = useState<'idle' | 'running' | 'feedback'>('idle');
@@ -21,6 +21,9 @@ export function ExpandingRing({ onComplete }: Props) {
   const startTimeRef = useRef(0);
   const radiusRef = useRef(0);
   const animRef = useRef(0);
+  const trialRef = useRef(0);
+  const hitsRef = useRef(0);
+  const reactionsRef = useRef<number[]>([]);
 
   const startTrial = () => {
     const tgt = 0.55 + Math.random() * 0.3;
@@ -44,15 +47,18 @@ export function ExpandingRing({ onComplete }: Props) {
       if (r / MAX_RADIUS < 1) {
         animRef.current = requestAnimationFrame(animate);
       } else {
-        // Missed
+        // Missed — use refs to avoid stale closure
         setPhase('feedback');
         setTrialResult('miss');
-        const nextTrial = trial + 1;
+        const nextTrial = trialRef.current + 1;
+        trialRef.current = nextTrial;
         setTrial(nextTrial);
         setTimeout(() => {
           if (nextTrial >= TOTAL_TRIALS) {
-            const accuracy = Math.round((hits / TOTAL_TRIALS) * 100);
-            const avg = reactions.length > 0 ? Math.round(reactions.reduce((a, b) => a + b, 0) / reactions.length) : 600;
+            const accuracy = Math.round((hitsRef.current / TOTAL_TRIALS) * 100);
+            const avg = reactionsRef.current.length > 0
+              ? Math.round(reactionsRef.current.reduce((a, b) => a + b, 0) / reactionsRef.current.length)
+              : 600;
             onComplete(accuracy, avg);
           } else {
             startTrial();
@@ -80,20 +86,24 @@ export function ExpandingRing({ onComplete }: Props) {
     const isHit = error < 0.12;
     const reaction = Date.now() - startTimeRef.current;
 
-    const nextHits = isHit ? hits + 1 : hits;
     if (isHit) {
-      setHits(nextHits);
-      setReactions((r) => [...r, reaction]);
+      hitsRef.current = hitsRef.current + 1;
+      setHits(hitsRef.current);
+      reactionsRef.current = [...reactionsRef.current, reaction];
+      setReactions(reactionsRef.current);
     }
     setTrialResult(isHit ? 'hit' : 'miss');
     setPhase('feedback');
-    const nextTrial = trial + 1;
+    const nextTrial = trialRef.current + 1;
+    trialRef.current = nextTrial;
     setTrial(nextTrial);
 
     setTimeout(() => {
       if (nextTrial >= TOTAL_TRIALS) {
-        const accuracy = Math.round((nextHits / TOTAL_TRIALS) * 100);
-        const avg = reactions.length > 0 ? Math.round(reactions.reduce((a, b) => a + b, 0) / reactions.length) : 600;
+        const accuracy = Math.round((hitsRef.current / TOTAL_TRIALS) * 100);
+        const avg = reactionsRef.current.length > 0
+          ? Math.round(reactionsRef.current.reduce((a, b) => a + b, 0) / reactionsRef.current.length)
+          : 600;
         onComplete(accuracy, avg);
       } else {
         startTrial();

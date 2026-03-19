@@ -12,7 +12,7 @@ interface Player {
 }
 
 export function TeammateAwareness({ onComplete }: Props) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [timeLeft, setTimeLeft] = useState(120);
   const [players, setPlayers] = useState<Player[]>([]);
   const [selected, setSelected] = useState<number | null>(null);

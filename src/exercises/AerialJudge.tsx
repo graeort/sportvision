@@ -7,7 +7,7 @@ interface Props {
 const TOTAL_TRIALS = 8;
 
 export function AerialJudge({ onComplete }: Props) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [phase, setPhase] = useState<'ready' | 'rising' | 'feedback'>('ready');
   const [ballY, setBallY] = useState(88);
   const [peakY, setPeakY] = useState(10);

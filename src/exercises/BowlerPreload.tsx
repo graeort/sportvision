@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface Props {
   onComplete: (accuracy: number, reactionMs: number) => void;
@@ -15,7 +15,7 @@ const DELIVERY_ICONS: Record<Delivery, string> = {
 const TOTAL_TRIALS = 8;
 
 export function BowlerPreload({ onComplete }: Props) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [phase, setPhase] = useState<'approach' | 'release' | 'answer' | 'feedback'>('approach');
   const [current, setCurrent] = useState<Delivery>('Yorker');
   const [correct, setCorrect] = useState(0);
@@ -23,6 +23,7 @@ export function BowlerPreload({ onComplete }: Props) {
   const [reactions, setReactions] = useState<number[]>([]);
   const [releaseTime, setReleaseTime] = useState(0);
   const [lastResult, setLastResult] = useState<boolean | null>(null);
+  const reactionsRef = useRef<number[]>([]);
 
   const startTrial = () => {
     const delivery = DELIVERIES[Math.floor(Math.random() * DELIVERIES.length)];
@@ -45,7 +46,8 @@ export function BowlerPreload({ onComplete }: Props) {
   const handleAnswer = (answer: Delivery) => {
     if (phase !== 'answer') return;
     const reaction = Date.now() - releaseTime;
-    setReactions((r) => [...r, reaction]);
+    reactionsRef.current = [...reactionsRef.current, reaction];
+    setReactions(reactionsRef.current);
     const isCorrect = answer === current;
     const nextCorrect = isCorrect ? correct + 1 : correct;
     if (isCorrect) setCorrect(nextCorrect);
@@ -57,7 +59,7 @@ export function BowlerPreload({ onComplete }: Props) {
     setTimeout(() => {
       if (nextTrial >= TOTAL_TRIALS) {
         const accuracy = Math.round((nextCorrect / TOTAL_TRIALS) * 100);
-        const avg = reactions.length > 0 ? Math.round(reactions.reduce((a, b) => a + b, 0) / reactions.length) : 500;
+        const avg = reactionsRef.current.length > 0 ? Math.round(reactionsRef.current.reduce((a, b) => a + b, 0) / reactionsRef.current.length) : 500;
         onComplete(accuracy, avg);
       } else {
         startTrial();
