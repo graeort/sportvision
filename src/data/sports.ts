@@ -70,4 +70,13 @@ export const SPORTS: Sport[] = [
     positions: ['Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Centre'],
     visualDemands: { dva: 3, cs: 3, pa: 5, dp: 3, at: 4 },
   },
+  {
+    id: 'padel',
+    name: 'Padel',
+    slug: 'padel',
+    color: '#06b6d4',
+    icon: '🏓',
+    positions: ['Server / Back Court', 'Net Player', 'All-Court Player'],
+    visualDemands: { dva: 5, cs: 3, pa: 4, dp: 5, at: 5 },
+  },
 ];

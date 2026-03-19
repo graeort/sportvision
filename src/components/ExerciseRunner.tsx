@@ -20,6 +20,7 @@ import { AntiSaccade } from '../exercises/AntiSaccade';
 import { SmoothPursuit } from '../exercises/SmoothPursuit';
 import { LoopingCatch } from '../exercises/LoopingCatch';
 import { AerialJudge } from '../exercises/AerialJudge';
+import { PadelWallRead } from '../exercises/PadelWallRead';
 import { GenericExercise } from '../exercises/GenericExercise';
 
 const DOMAIN_META: Record<string, { label: string; color: string; bg: string }> = {
@@ -85,6 +86,7 @@ export function ExerciseRunner({ exercise, exerciseIndex, totalExercises, onNext
       case 'SmoothPursuit':      return <SmoothPursuit onComplete={handleComplete} />;
       case 'LoopingCatch':       return <LoopingCatch onComplete={handleComplete} />;
       case 'AerialJudge':        return <AerialJudge onComplete={handleComplete} />;
+      case 'PadelWallRead':      return <PadelWallRead onComplete={handleComplete} />;
       default:
         return <GenericExercise exercise={exercise} onComplete={handleComplete} />;
     }

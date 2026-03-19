@@ -87,6 +87,7 @@ export function Training() {
         </div>
 
         <ExerciseRunner
+          key={currentSession.currentIndex}
           exercise={currentExercise}
           exerciseIndex={currentSession.currentIndex}
           totalExercises={currentSession.exerciseIds.length}

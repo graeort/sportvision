@@ -1,18 +1,37 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface Props {
   onComplete: (accuracy: number, reactionMs: number) => void;
 }
 
+const TOTAL_TARGETS = 20;  // exercise ends when player finds target #20
+const TIME_LIMIT = 60;      // or when 60 seconds runs out
+
 export function SaccadicHunt({ onComplete }: Props) {
   const [active, setActive] = useState(true);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
   const [targetNum, setTargetNum] = useState(1);
   const [numbers, setNumbers] = useState<Array<{ num: number; x: number; y: number; id: number }>>([]);
   const [hits, setHits] = useState(0);
   const [misses, setMisses] = useState(0);
-  const [reactions, setReactions] = useState<number[]>([]);
   const [reactionStart, setReactionStart] = useState(0);
+
+  // Refs to avoid stale closures in timer and prevent double-completion
+  const hitsRef = useRef(0);
+  const missesRef = useRef(0);
+  const reactionsRef = useRef<number[]>([]);
+  const completedRef = useRef(false);
+
+  const finish = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    const total = hitsRef.current + missesRef.current;
+    const accuracy = total > 0 ? Math.round((hitsRef.current / total) * 100) : 65;
+    const avg = reactionsRef.current.length > 0
+      ? Math.round(reactionsRef.current.reduce((a, b) => a + b, 0) / reactionsRef.current.length)
+      : 500;
+    onComplete(Math.min(accuracy, 100), avg);
+  }, [onComplete]);
 
   const spawnNumbers = useCallback((currentTarget: number) => {
     const positions: Array<{ x: number; y: number }> = [];
@@ -40,33 +59,39 @@ export function SaccadicHunt({ onComplete }: Props) {
     spawnNumbers(1);
   }, [active, spawnNumbers]);
 
+  // Timer — depends only on active; uses refs for accurate final stats
   useEffect(() => {
     if (!active) return;
     const interval = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
           clearInterval(interval);
-          const total = hits + misses;
-          const accuracy = total > 0 ? Math.round((hits / total) * 100) : 65;
-          const avg = reactions.length > 0 ? Math.round(reactions.reduce((a, b) => a + b, 0) / reactions.length) : 500;
-          onComplete(Math.min(accuracy, 100), avg);
+          finish();
           return 0;
         }
         return t - 1;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [active, hits, misses, reactions, onComplete]);
+  }, [active, finish]);
 
   const handleClick = (_num: number, isTarget: boolean) => {
-    if (!active) return;
+    if (!active || completedRef.current) return;
     if (isTarget) {
       const reaction = Date.now() - reactionStart;
-      setReactions((r) => [...r, reaction]);
-      setHits((h) => h + 1);
+      hitsRef.current += 1;
+      reactionsRef.current = [...reactionsRef.current, reaction];
+      setHits(hitsRef.current);
+
+      // Complete when player finds the final target
+      if (targetNum >= TOTAL_TARGETS) {
+        finish();
+        return;
+      }
       spawnNumbers(targetNum + 1);
     } else {
-      setMisses((m) => m + 1);
+      missesRef.current += 1;
+      setMisses(missesRef.current);
     }
   };
 
@@ -78,6 +103,7 @@ export function SaccadicHunt({ onComplete }: Props) {
         <span>⏱ {timeLeft}s</span>
         <span className="text-blue-300 font-medium">
           Find: <strong className="text-white text-base">{targetNum}</strong>
+          <span className="text-gray-500 text-xs ml-1">/ {TOTAL_TARGETS}</span>
         </span>
         <span>{accuracy}% accuracy</span>
       </div>
@@ -87,7 +113,7 @@ export function SaccadicHunt({ onComplete }: Props) {
           <div className="text-4xl mb-3">🔢</div>
           <h3 className="text-white font-bold mb-2">Saccadic Number Hunt</h3>
           <p className="text-gray-400 text-sm mb-4">
-            Click numbers in ascending order (1, 2, 3…) as fast as possible. Keep your head still — use only your eyes.
+            Click numbers 1 → {TOTAL_TARGETS} in order as fast as you can. Keep your head still — eyes only. Ends at target {TOTAL_TARGETS} or {TIME_LIMIT}s, whichever comes first.
           </p>
           <button
             onClick={() => setActive(true)}
@@ -119,11 +145,21 @@ export function SaccadicHunt({ onComplete }: Props) {
       )}
 
       {active && (
-        <div className="w-full max-w-md bg-gray-800 rounded-full h-1.5 overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all"
-            style={{ width: `${(timeLeft / 60) * 100}%` }}
-          />
+        <div className="w-full max-w-md space-y-1.5">
+          {/* Time bar */}
+          <div className="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all"
+              style={{ width: `${(timeLeft / TIME_LIMIT) * 100}%` }}
+            />
+          </div>
+          {/* Target progress bar */}
+          <div className="w-full bg-gray-800 rounded-full h-1 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all"
+              style={{ width: `${((targetNum - 1) / TOTAL_TARGETS) * 100}%` }}
+            />
+          </div>
         </div>
       )}
     </div>
