@@ -52,6 +52,7 @@ interface AppState {
   assessments: AssessmentScores[];
   sessions: SessionRecord[];
   onboardingComplete: boolean;
+  authInitialized: boolean;   // true once the initial getSession() check completes
   currentSession: {
     exerciseIds: string[];
     currentIndex: number;
@@ -61,6 +62,7 @@ interface AppState {
   // Auth
   login: (user: User) => void;
   logout: () => Promise<void>;
+  setAuthInitialized: () => void;
 
   // Profile
   setProfile: (profile: AthleteProfile) => Promise<void>;
@@ -89,11 +91,13 @@ export const useAppStore = create<AppState>()(
       assessments: [],
       sessions: [],
       onboardingComplete: false,
+      authInitialized: false,
       currentSession: null,
 
       // ── Auth ──────────────────────────────────────────────────────────────
 
       login: (user) => set({ user }),
+      setAuthInitialized: () => set({ authInitialized: true }),
 
       logout: async () => {
         await supabase.auth.signOut();

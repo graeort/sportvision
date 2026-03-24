@@ -5,6 +5,7 @@ import { supabase } from './lib/supabase';
 import { AppShell } from './components/layout/AppShell';
 import { Landing } from './pages/Landing';
 import { Auth } from './pages/Auth';
+import { AuthCallback } from './pages/AuthCallback';
 import { Onboarding } from './pages/Onboarding';
 import { Dashboard } from './pages/Dashboard';
 import { Training } from './pages/Training';
@@ -16,37 +17,49 @@ import { Settings } from './pages/Settings';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const user = useAppStore((s) => s.user);
+  const authInitialized = useAppStore((s) => s.authInitialized);
+
+  // Wait for the initial session check before deciding to redirect
+  if (!authInitialized) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   if (!user) return <Navigate to="/login" replace />;
   return <AppShell>{children}</AppShell>;
 }
 
 function AuthListener() {
-  const { login, logout, initFromSupabase } = useAppStore();
+  const { login, logout, initFromSupabase, setAuthInitialized } = useAppStore();
 
   useEffect(() => {
-    // Restore session on mount (handles page refresh)
+    // Restore session on mount (handles page refresh + OAuth callback code exchange)
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         const user = session.user;
-        const meta = user.user_metadata as { name?: string; role?: string };
+        const meta = user.user_metadata as { name?: string; role?: string; full_name?: string };
         login({
           id: user.id,
-          name: meta?.name || user.email?.split('@')[0] || 'Athlete',
+          name: meta?.full_name || meta?.name || user.email?.split('@')[0] || 'Athlete',
           email: user.email!,
           role: (meta?.role as 'athlete' | 'coach') || 'athlete',
         });
         await initFromSupabase(user.id);
       }
+      setAuthInitialized();
     });
 
     // Listen for auth state changes (sign-in, sign-out, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const user = session.user;
-        const meta = user.user_metadata as { name?: string; role?: string };
+        const meta = user.user_metadata as { name?: string; role?: string; full_name?: string };
         login({
           id: user.id,
-          name: meta?.name || user.email?.split('@')[0] || 'Athlete',
+          name: meta?.full_name || meta?.name || user.email?.split('@')[0] || 'Athlete',
           email: user.email!,
           role: (meta?.role as 'athlete' | 'coach') || 'athlete',
         });
@@ -57,7 +70,7 @@ function AuthListener() {
     });
 
     return () => subscription.unsubscribe();
-  }, [login, logout, initFromSupabase]);
+  }, [login, logout, initFromSupabase, setAuthInitialized]);
 
   return null;
 }
@@ -70,6 +83,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Auth mode="login" />} />
         <Route path="/register" element={<Auth mode="register" />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route
           path="/dashboard"
